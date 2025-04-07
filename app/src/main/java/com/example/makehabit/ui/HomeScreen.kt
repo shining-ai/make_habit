@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Button
+import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -37,11 +38,28 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.makehabit.data.HabitRecord
-import com.example.makehabit.ui.components.MinimalDropdownMenu
+import com.example.makehabit.viewmodel.HabitViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+
+@Composable
+fun RecordListScreen(viewModel: HabitViewModel) {
+    val records = viewModel.recordList
+
+    LazyColumn {
+        items(records) { record ->
+            Column(modifier = Modifier.padding(8.dp)) {
+                Text("日付: ${record.date}")
+                Text("タスク: ${record.taskName}")
+                Text("時間: ${record.startTime} ~ ${record.endTime}")
+            }
+        }
+    }
+}
+
 
 // タスクのオートコンプリート
 @Composable
@@ -145,13 +163,15 @@ fun HistoryList(historyList: List<HabitRecord>) {
 
     LazyColumn {
         items(historyList) { record ->
-            Text("タスク: ${record.taskName}, 日付: ${record.date}, 時間: ${record.startTime} - ${record.endTime}")
+            Text("${record.taskName}, ${record.date}, ${record.startTime} - ${record.endTime}")
         }
     }
 }
 
 @Composable
-fun MainScreenContent(modifier: Modifier = Modifier) {
+fun MainScreenContent(modifier: Modifier = Modifier, viewModel: HabitViewModel) {
+    val records = viewModel.recordList
+
     var expanded by remember { mutableStateOf(false) }
     var selectedTask by remember { mutableStateOf("") }
     var taskOptions by remember { mutableStateOf(listOf("勉強", "読書", "運動")) }
@@ -177,6 +197,7 @@ fun MainScreenContent(modifier: Modifier = Modifier) {
         endTime = timeFormat.format(Date())
         isRecording = false
 
+
         // 入力されたタスクが一覧にない場合、追加する
         if (selectedTask.isNotBlank() && selectedTask !in taskOptions) {
             taskOptions = taskOptions + selectedTask
@@ -184,7 +205,7 @@ fun MainScreenContent(modifier: Modifier = Modifier) {
 
         // 新しい記録をhistoryListに追加
         val newRecord = HabitRecord(currentDate, startTime, endTime, selectedTask)
-        historyList.add(newRecord)
+        viewModel.addRecord(newRecord)
     }
 
     Column (
@@ -218,7 +239,7 @@ fun MainScreenContent(modifier: Modifier = Modifier) {
         // 履歴表示
         Spacer(modifier = Modifier.height(32.dp))
         // 履歴表示
-        HistoryList(historyList)
+        HistoryList(records)
 
     }
 }

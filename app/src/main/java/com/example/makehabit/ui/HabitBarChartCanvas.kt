@@ -12,6 +12,9 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.unit.dp
 import com.example.makehabit.data.HabitRecord
+import com.example.makehabit.ui.timeToBlockIndex
+
+
 
 @Composable
 fun HabitBarChartCanvas(historyList: List<HabitRecord>, modifier: Modifier = Modifier){
@@ -37,7 +40,8 @@ fun HabitBarChartCanvas(historyList: List<HabitRecord>, modifier: Modifier = Mod
     ) {
         val canvasWidth = size.width
         val canvasHeight = size.height
-        val hourWidth = canvasWidth / 24f
+//        val hourWidth = canvasWidth / 24f
+        val timeBlockWidth = canvasWidth / 144f
 
         // 時間のラベルを描画 (0, 6, 12, 18, 24)
         val labelHours = listOf(0, 6, 12, 18, 24)
@@ -82,8 +86,10 @@ fun HabitBarChartCanvas(historyList: List<HabitRecord>, modifier: Modifier = Mod
             )
 
             records.forEach { record ->
-                val startHour = record.startTime.substring(0, 2).toFloat()
-                val endHour = record.endTime.substring(0, 2).toFloat()
+//                val startHour = record.startTime.substring(0, 2).toFloat()
+//                val endHour = record.endTime.substring(0, 2).toFloat()
+                val startIndex = timeToBlockIndex(record.startTime)
+                val endIndex = timeToBlockIndex(record.endTime)
                 val taskColor = when (record.taskName) {
                     "筋トレ" -> Color.Blue
                     "勉強" -> Color.Green
@@ -94,8 +100,8 @@ fun HabitBarChartCanvas(historyList: List<HabitRecord>, modifier: Modifier = Mod
                 // 記録部分を塗りつぶし
                 drawRect(
                     color = taskColor,
-                    topLeft = Offset(startHour * hourWidth, barY + 1f),
-                    size = Size((endHour - startHour) * hourWidth, (barHeight - 1.dp).toPx())
+                    topLeft = Offset(startIndex * timeBlockWidth, barY + 1f),
+                    size = Size((endIndex - startIndex) * timeBlockWidth, (barHeight - 1.dp).toPx())
                 )
             }
             // 日付ラベルを左側に表示
@@ -107,7 +113,8 @@ fun HabitBarChartCanvas(historyList: List<HabitRecord>, modifier: Modifier = Mod
             )
             // 時間ラベルの表示
             labelHours.forEach { hour ->
-                val x = hour * hourWidth
+//                val x = hour * hourWidth
+                val x = hour * timeBlockWidth * 6
                 drawContext.canvas.nativeCanvas.drawText(
                     "$hour:00",
                     x,
